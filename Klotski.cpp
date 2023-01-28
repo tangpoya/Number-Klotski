@@ -62,18 +62,18 @@ public:
 		SetConsoleCursorPosition(hOutput, (COORD){0, 0});//将光标设为{0,0}
 		update();	
 	}
-}scrbuf;
+}scrbuf;//双缓冲输出减少闪屏
 
 map<int,int>f;
 map<int,int>FS;
 int n,a[50][50],tot,l,l2;
-int dx[5]={0,-1,0,1,0},dy[5]={0,0,1,0,-1};
+int dx[5]={0,-1,0,1,0},dy[5]={0,0,1,0,-1}; //定义变量
 
 struct node
 {
 	int x,y;
 };
-string its(int kk)
+string its(int kk)  //int类型转string类型
 {
 	string s11="",s22="";
 	while(kk>0)
@@ -86,7 +86,7 @@ string its(int kk)
 		s22+=s11[i];
 	return s22;
 }
-bool check()
+bool check()  //检查是否完成游戏
 {
 	for(int i=1;i<=n;i++)
 		for(int j=1;j<=n;j++)
@@ -94,7 +94,7 @@ bool check()
 				return false;
 	return true;
 }
-int len(int x)
+int len(int x)  //用于计算输出时数字之间的空格数量
 {
 	if(x==0)	return 1;
 	int num=0;
@@ -102,7 +102,7 @@ int len(int x)
 		num++,x/=10;
 	return num;
 }
-void print()
+void print()      //将内容输出到屏幕
 {
 	string sp="";
 	for(int i=1;i<=n;i++)
@@ -123,27 +123,27 @@ void print()
 	scrbuf.update();
 	return ;
 }
-void make()
+void make()   //生成华容道
 {
 	srand((unsigned)time(NULL));
 	memset(a,0,sizeof(a));
 	int rd=0,r=0,cnt=0;
 	
 	scrbuf.clear();
-	printf("  Enter a number (3~10),it will depend the size.\n");
+	printf("  Enter a number (3~10),it will depend the size.\n");   //输入华容道规模
 	scrbuf.update();
 	cin>>n;
 	
 	scrbuf.clear();
 	printf("  Entry a number.If the number is 0,the seed will be randomly generated.\n");
 	scrbuf.update();
-	cin>>rd;
+	cin>>rd;    //输入种子，若为0则随机生成
 	
 	if(rd==0)
 		rd=rand()%10086+13;
 	r=rd%100;
 	
-	for(int i=1;i<=114514;i++)
+	for(int i=1;i<=114514;i++)   //根据种子生成有且仅有[1,2,3,4]数字的FS数组
 	{
 		FS[i]=abs((i*rd%192-rd%23)%5);
 		if(FS[i]==0)
@@ -159,7 +159,7 @@ void make()
 		szs[i]=i;
 	for(int i=1;i<=n;i++)
 		for(int j=1;j<=n;j++)
-			a[i][j]=szs[++t];
+			a[i][j]=szs[++t];  //生成原始华容道
 	
 	a[n][n]=0;
 	node rxy,ttmp;
@@ -169,7 +169,7 @@ void make()
 	{
 		ttmp.x=rxy.x+dx[FS[++cnt]],ttmp.y=rxy.y+dy[FS[cnt]];
 		if(ttmp.x>0 && ttmp.x<=n && ttmp.y>0 && ttmp.y<=n)
-			swap(a[rxy.x][rxy.y],a[ttmp.x][ttmp.y]),swap(rxy,ttmp);
+			swap(a[rxy.x][rxy.y],a[ttmp.x][ttmp.y]),swap(rxy,ttmp);      //根据FS数组生成无序的华容道
 	}
 	return;
 }
@@ -177,8 +177,8 @@ void make()
 int main()
 {
 	scrbuf.on();
-	f['s']=1,f['a']=2;f['w']=3,f['d']=4;
-	while(1)
+	f['s']=1,f['a']=2;f['w']=3,f['d']=4;   //wasd键盘控制
+	while(1)  //程序主循环
 	{
 		make();
 		node nw;
@@ -186,11 +186,11 @@ int main()
 			for(int j=1;j<=n;j++)
 				if(a[i][j]==0)
 					nw.x=i,nw.y=j;
-		while(1)
+		while(1)        //游戏主循环
 		{
 			print();
-			char fc=getch();
-			if(fc==27)
+			char fc=getch();  //读取键盘操作
+			if(fc==27)   //若按下Esc，呼出菜单
 			{
 				scrbuf.clear();
 				printf("Press a letter :\n [r]:return the game.\n [a]:Restart the game.\n [e]:Exit the game.\n");
@@ -200,26 +200,26 @@ int main()
 				fc3=getch();
 				
 				if(fc3[0]=='r') 
-					continue;
+					continue;  	//若按下 r 返回游戏
 				if(fc3[0]=='a') 
-					break;
+					break;          //若按下 a 重新开始
 				if(fc3[0]=='e') 
-					return 0;
+					return 0;      //若按下 e 退出程序
 				
 				print();
 				continue;
 			}
 			if(fc!='w' && fc!='a' && fc!='s' && fc!='d' ) 
-				continue;
+				continue;     //防止乱按
 			node tmp;
 			tmp.x=nw.x+dx[f[(int)fc]];
 			tmp.y=nw.y+dy[f[(int)fc]];
 			if(tmp.x>0 && tmp.x<=n && tmp.y>0 && tmp.y<=n)
 			{
-				swap(a[nw.x][nw.y],a[tmp.x][tmp.y]),swap(nw,tmp);
+				swap(a[nw.x][nw.y],a[tmp.x][tmp.y]),swap(nw,tmp);   //根据按下的按键互换空格和数字
 				tot++;
 				print();
-				if(check())
+				if(check())  //检查是否完成排序
 				{
 					//scrbuf.clear();
 					printf("You win the game!\n");
@@ -229,10 +229,10 @@ int main()
 					tot=0;
 					char fc1;
 					fc1=getch();
-					if(fc1=='a') 
+					if(fc1=='a')   //若按下 a 则重新开始游戏
 						break;
 					else 
-						return 0;
+						return 0;  //若按下其他按键则退出程序
 				}
 			}
 		}
