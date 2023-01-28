@@ -68,11 +68,13 @@ map<int,int>f;
 map<int,int>FS;
 int n,a[50][50],tot,l,l2;
 int dx[5]={0,-1,0,1,0},dy[5]={0,0,1,0,-1}; //定义变量
+int __seed,__size;
 
 struct node
 {
 	int x,y;
 };
+
 string its(int kk)  //int类型转string类型
 {
 	string s11="",s22="";
@@ -86,6 +88,7 @@ string its(int kk)  //int类型转string类型
 		s22+=s11[i];
 	return s22;
 }
+
 bool check()  //检查是否完成游戏
 {
 	for(int i=1;i<=n;i++)
@@ -94,6 +97,7 @@ bool check()  //检查是否完成游戏
 				return false;
 	return true;
 }
+
 int len(int x)  //用于计算输出时数字之间的空格数量
 {
 	if(x==0)	return 1;
@@ -102,6 +106,7 @@ int len(int x)  //用于计算输出时数字之间的空格数量
 		num++,x/=10;
 	return num;
 }
+
 void print()      //将内容输出到屏幕
 {
 	string sp="";
@@ -116,32 +121,38 @@ void print()      //将内容输出到屏幕
 			for(int k=len(a[i][j]);k<l;k++)
 				sp+=" ";
 		}
-	sp+="\n";
+		sp+="\n";
 	}
 	scrbuf.clear();
 	printf("Press WADS to control.\n%s",sp.c_str());
 	scrbuf.update();
 	return ;
 }
+
 void make()   //生成华容道
 {
 	srand((unsigned)time(NULL));
 	memset(a,0,sizeof(a));
 	int rd=0,r=0,cnt=0;
 	
-	scrbuf.clear();
-	printf("  Enter a number (3~10),it will depend the size.\n");   //输入华容道规模
-	scrbuf.update();
-	cin>>n;
+	do
+	{
+		scrbuf.clear();
+		printf("Enter a number (2~11),it will depend the size.\n");   //输入华容道规模
+		scrbuf.update();
+		cin>>n;
+		__size=n;
+	}while(n<2 || n>11); //安全门
 	
 	scrbuf.clear();
-	printf("  Entry a number.If the number is 0,the seed will be randomly generated.\n");
+	printf("Entry a number.If the number is 0,the seed will be randomly generated.\n");
 	scrbuf.update();
 	cin>>rd;    //输入种子，若为0则随机生成
 	
 	if(rd==0)
 		rd=rand()%10086+13;
 	r=rd%100;
+	__seed=rd;
 	
 	for(int i=1;i<=114514;i++)   //根据种子生成有且仅有[1,2,3,4]数字的FS数组
 	{
@@ -224,6 +235,7 @@ int main()
 					//scrbuf.clear();
 					printf("You win the game!\n");
 					printf("The total steps is %d!\n",tot);
+					printf("-------------------------\n  The seed is:%d   The size is:%d\n-------------------------\n",__seed,__size);
 					printf("Enter a letter: [a]:Restart the game  [Letters other than a]:Exit the game.\n");
 					scrbuf.update();
 					tot=0;
