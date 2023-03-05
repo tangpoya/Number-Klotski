@@ -2,80 +2,55 @@
 #include<cstring>
 #include<ctime>
 #include<cmath>
-#include<conio.h>
+#include<ege.h>
 #include<map>
 #include<Windows.h>
 #include "stdlib.h"
 #include<bits/stdc++.h>
 #define DATALEN 10000
+#define ll long long
 using namespace std;
+using namespace ege;
 
-class ScreenBuff{
-public:
-	HANDLE hOutput;
-	HANDLE hOutBuf;
-	COORD coord={0,0};
-	DWORD bytes;
-	bool isOn;
-	char data[DATALEN];
-	ScreenBuff(){
-		bytes = 0;
-		hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
-		hOutBuf = CreateConsoleScreenBuffer(
-			GENERIC_READ | GENERIC_WRITE, 
-			FILE_SHARE_READ | FILE_SHARE_WRITE, 
-			NULL, 
-			CONSOLE_TEXTMODE_BUFFER, 
-			NULL
-			);
-		CONSOLE_CURSOR_INFO cci;
-		cci.bVisible=0;
-		cci.dwSize=1;
-		SetConsoleCursorInfo(hOutput, &cci);
-		SetConsoleCursorInfo(hOutBuf, &cci);
-	}
-	void on()
-	{//开启双缓冲后，在输出后必须调用update才能显示 
-		isOn = true;
-		SetConsoleActiveScreenBuffer(hOutBuf);
-	}
-	void off()
-	{//关闭双缓冲 
-		isOn = false;
-		SetConsoleActiveScreenBuffer(hOutput);
-	}
-	void update()
-	{//更新屏幕 
-		if(isOn)
-		{
-			ReadConsoleOutputCharacterA(hOutput, data, DATALEN, coord, &bytes);
-			WriteConsoleOutputCharacterA(hOutBuf, data, DATALEN, coord, &bytes);
-		}
-	}
-	void clear()//清空屏幕 
-	{
-		CONSOLE_SCREEN_BUFFER_INFO cinfo;//用于储存控制台缓冲区信息,在这里主要获取控制台缓冲区大小
-		DWORD recnum;
-		GetConsoleScreenBufferInfo(hOutput, &cinfo);//cinfo.dwSize储存的是缓冲区大小//cinfo.dwSize.X * cinfo.dwSize.Y 即需填充的字符数
-		FillConsoleOutputCharacterW(hOutput,  L' ', cinfo.dwSize.X * cinfo.dwSize.Y, (COORD){0, 0}, &recnum);//从{0,0}处开始填充' '字符,成功填充个数为recnum
-		FillConsoleOutputAttribute(hOutput, 0, cinfo.dwSize.X * cinfo.dwSize.Y, (COORD){0, 0}, &recnum);//设置输出颜色,如果不是单一颜色,可能会有清除字符而背景色没有清除的现象
-		SetConsoleCursorPosition(hOutput, (COORD){0, 0});//将光标设为{0,0}
-		update();	
-	}
-}scrbuf;//双缓冲输出减少闪屏
-
-map<int,int>f;
-map<int,int>FS;
-int n,a[50][50],tot,l,l2;
-int dx[5]={0,-1,0,1,0},dy[5]={0,0,1,0,-1}; //定义变量
-int __seed,__size;
+map<ll,ll>f;
+map<ll,ll>FS;
+ll n,a[50][50],tot,l,l2;
+ll dx[5]={0,-1,0,1,0},dy[5]={0,0,1,0,-1}; //定义变量
+ll __seed,__size;
+char pri[10000],kz[5000];
 
 struct node
 {
-	int x,y;
+	ll x,y;
 };
 
-string its(int kk)  //int类型转string类型
+int _read(string s) //键盘输入
+{
+	char a[100],b;
+	int numb=0;
+	sprintf(a,"%s\n",s.c_str()); //输出提示
+	cleardevice();
+	outtextxy(10,10,a);
+	while(1)
+	{
+		b=getch();
+		if(b==8)   //如果是Back键就减掉最后一位
+			numb=numb/10;
+		else if(b>='0' && b<='9')  //如是数字则累加
+			numb=numb*10+b-'0';
+		else if(b==13)break;  //如果是回车就结束
+		sprintf(a,"%s",s.c_str());
+		cleardevice();
+		outtextxy(10, 10,a);
+		if(numb!=0)
+			sprintf(a,"%d",numb);
+		else sprintf(a," ");
+		outtextxy(10, 30,a);
+	}
+	return numb;
+}
+
+string its(ll kk)  //int类型转string类型
 {
 	string s11="",s22="";
 	while(kk>0)
@@ -84,24 +59,24 @@ string its(int kk)  //int类型转string类型
 		kk/=10;
 	}
 	kk=s11.size();
-	for(int i=kk-1;i>=0;i--)
+	for(ll i=kk-1;i>=0;i--)
 		s22+=s11[i];
 	return s22;
 }
 
 bool check()  //检查是否完成游戏
 {
-	for(int i=1;i<=n;i++)
-		for(int j=1;j<=n;j++)
+	for(ll i=1;i<=n;i++)
+		for(ll j=1;j<=n;j++)
 			if(a[i][j]!=(i-1)*n+j && (i-1)*n+j!=n*n)
 				return false;
 	return true;
 }
 
-int len(int x)  //用于计算输出时数字之间的空格数量
+ll len(ll x)  //用于计算输出时数字之间的空格数量
 {
 	if(x==0)	return 1;
-	int num=0;
+	ll num=0;
 	while(x!=0)
 		num++,x/=10;
 	return num;
@@ -109,74 +84,80 @@ int len(int x)  //用于计算输出时数字之间的空格数量
 
 void print()      //将内容输出到屏幕
 {
-	string sp="";
-	for(int i=1;i<=n;i++)
+	string sp;
+	sprintf(pri,"Press WADS to control.\n%s",sp.c_str());
+	outtextxy(10,10,pri);
+	for(ll i=1;i<=n;i++)
 	{
-		for(int j=1;j<=n;j++)
+		sp="";
+		for(ll j=1;j<=n;j++)
 		{
 			if(a[i][j]==0)
 				sp+="  ";
 			else
 				sp+=its(a[i][j])+" ";
-			for(int k=len(a[i][j]);k<l;k++)
+			for(ll k=len(a[i][j]);k<l;k++)
 				sp+=" ";
 		}
-		sp+="\n";
+		outtextxy(10,i*15+10,sp.c_str());
 	}
-	scrbuf.clear();
-	printf("Press WADS to control.\n%s",sp.c_str());
-	scrbuf.update();
 	return ;
+}
+
+int seed1(int ab)
+{
+	while(ab<100000000)
+		ab*=random(4)+random(100);
+	if(ab>=1000000000)
+		ab=ab/10;
+	return ab;
 }
 
 void make()   //生成华容道
 {
-	srand((unsigned)time(NULL));
 	memset(a,0,sizeof(a));
-	int rd=0,r=0,cnt=0;
+	ll rd=0,r=0,cnt=0;
 	
 	do
 	{
-		scrbuf.clear();
-		printf("Enter a number (2~11),it will depend the size.\n");   //输入华容道规模
-		scrbuf.update();
-		cin>>n;
+		sprintf(pri,"Enter a number (2~11),it will depend the size.\n");   //输入华容道规模
+		n=_read(pri);
 		__size=n;
 	}while(n<2 || n>11); //安全门
+
+	sprintf(pri,"Enter a nine-digit number.If this number is not a nine-digit number,the seed will be randomly generated.\n");
+	rd=_read(pri);    //输入种子，若为0则随机生成
 	
-	scrbuf.clear();
-	printf("Entry a number.If the number is 0,the seed will be randomly generated.\n");
-	scrbuf.update();
-	cin>>rd;    //输入种子，若为0则随机生成
-	
-	if(rd==0)
-		rd=rand()%10086+13;
-	r=rd%100;
+	if(rd<100000000 || rd>999999999)
+		rd=random(999999999);
+	rd=seed1(rd);
+	r=rd%211+3;
 	__seed=rd;
 	
 	for(int i=1;i<=114514;i++)   //根据种子生成有且仅有[1,2,3,4]数字的FS数组
 	{
-		FS[i]=abs((i*rd%192-rd%23)%5);
+		FS[i]=abs((i*rd%1921-rd%243)%5);
 		if(FS[i]==0)
 			FS[i]=(rd%4+1)%5;
-		if(rd>200)
+		if(rd>200000)
 			rd-=r;
 		else rd+=r;
+		r=rd%985+2;
 	}
 	
 	l=len(n*n);
-	int szs[101],t=0;
-	for(int i=1;i<=n*n;i++) 
+	ll szs[122],t=0;
+	for(ll i=1;i<=n*n;i++) 
 		szs[i]=i;
-	for(int i=1;i<=n;i++)
-		for(int j=1;j<=n;j++)
+	for(ll i=1;i<=n;i++)
+		for(ll j=1;j<=n;j++)
 			a[i][j]=szs[++t];  //生成原始华容道
 	
 	a[n][n]=0;
 	node rxy,ttmp;
 	rxy.x=n,rxy.y=n;
 	
-	for(int i=1;i<=114514;i++)
+	for(ll i=1;i<=114514;i++)
 	{
 		ttmp.x=rxy.x+dx[FS[++cnt]],ttmp.y=rxy.y+dy[FS[cnt]];
 		if(ttmp.x>0 && ttmp.x<=n && ttmp.y>0 && ttmp.y<=n)
@@ -187,44 +168,56 @@ void make()   //生成华容道
 
 int main()
 {
-	scrbuf.on();
+	randomize();//随机数初始化
+	initgraph(1040, 680, INIT_ANIMATION);//设置窗口 INIT_ANIMATION为游戏用
+	setcaption("Number-Klotski");	//设置窗口标题
+	setbkcolor(WHITE);  //设置背景颜色
+	setfont(-16, 0,"微软雅黑"); //设置字体大小
+	setcolor(EGERGB(0, 0, 0)); //设置字体颜色
+	/*scrbuf.on();*/
 	f['s']=1,f['a']=2;f['w']=3,f['d']=4;   //wasd键盘控制
 	while(1)  //程序主循环
 	{
 		make();
 		node nw;
-		for(int i=1;i<=n;i++)
-			for(int j=1;j<=n;j++)
+		for(ll i=1;i<=n;i++)
+			for(ll j=1;j<=n;j++)
 				if(a[i][j]==0)
 					nw.x=i,nw.y=j;
 		while(1)        //游戏主循环
 		{
+			cleardevice();
 			print();
-			char fc=getch();  //读取键盘操作
+			char fc=getch();
+			  //读取键盘操作
 			if(fc==27)   //若按下Esc，呼出菜单
 			{
-				scrbuf.clear();
-				printf("Press a letter :\n [r]:return the game.\n [a]:Restart the game.\n [e]:Exit the game.\n");
-				scrbuf.update();
-				
-				string fc3;
+				sprintf(kz,"Press a key:\n [r]:return the game.\n [a]:Restart the game.\n [e]:Exit the game.\n");
+				cleardevice();
+				outtextxy(10,10,kz);
+				sprintf(kz,"-------------------------\n  The seed is:%d   The size is:%d  \n-------------------------",__seed,__size);
+				outtextxy(10,30,kz);
+				char fc3;
 				fc3=getch();
 				
-				if(fc3[0]=='r') 
+				if(fc3=='r') 
 					continue;  	//若按下 r 返回游戏
-				if(fc3[0]=='a') 
+				if(fc3=='a') 
 					break;          //若按下 a 重新开始
-				if(fc3[0]=='e') 
+				if(fc3=='e') 
 					return 0;      //若按下 e 退出程序
 				
 				print();
 				continue;
 			}
+			
 			if(fc!='w' && fc!='a' && fc!='s' && fc!='d' ) 
 				continue;     //防止乱按
+			
 			node tmp;
-			tmp.x=nw.x+dx[f[(int)fc]];
-			tmp.y=nw.y+dy[f[(int)fc]];
+			tmp.x=nw.x+dx[f[(ll)fc]];
+			tmp.y=nw.y+dy[f[(ll)fc]];
+			
 			if(tmp.x>0 && tmp.x<=n && tmp.y>0 && tmp.y<=n)
 			{
 				swap(a[nw.x][nw.y],a[tmp.x][tmp.y]),swap(nw,tmp);   //根据按下的按键互换空格和数字
@@ -232,12 +225,17 @@ int main()
 				print();
 				if(check())  //检查是否完成排序
 				{
-					//scrbuf.clear();
-					printf("You win the game!\n");
-					printf("The total steps is %d!\n",tot);
-					printf("-------------------------\n  The seed is:%d   The size is:%d\n-------------------------\n",__seed,__size);
-					printf("Enter a letter: [a]:Restart the game  [Letters other than a]:Exit the game.\n");
-					scrbuf.update();
+					cleardevice();
+					char pr[100];
+					sprintf(pr,"You win the game!\n");
+					outtextxy(10,10,pr);
+					sprintf(pr,"The total steps is %d!\n",tot);
+					outtextxy(10,30,pr);
+					sprintf(pr,"-------------------------\n  The seed is:%d   The size is:%d  \n-------------------------\n",__seed,__size);
+					outtextxy(10,50,pr);
+					sprintf(pr,"Enter a letter: [a]:Restart the game  [s]:Exit the game.\n");
+					outtextxy(10,70,pr);
+					
 					tot=0;
 					char fc1;
 					fc1=getch();
@@ -251,4 +249,4 @@ int main()
 	}
 	return 0;
 }
-//version:1.1.2
+//version:1.2.0
